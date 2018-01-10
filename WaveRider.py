@@ -1,15 +1,18 @@
 import pandas as pd
 import requests
 import json
+import os
 from bs4 import BeautifulSoup
 from nltk.tokenize import RegexpTokenizer
 import datetime
 import calendar
+import matplotlib.pyplot as plt
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 def populate(currency,start_date,end_date):
-    res = requests.get("https://coinmarketcap.com/currencies/"+currency+"/historical-data/?start="+str(start_date)+"&end="+str(end_date))
+    res = requests.get("https://coinmarketcap.com/currencies/"+currency+"/historical-data/?start="+str(start_date)+"&end="+end_date)
     soup = BeautifulSoup(res.content,'lxml')
     table = soup.find_all('table')[0]
     df = pd.read_html(str(table))
@@ -30,10 +33,6 @@ def populate(currency,start_date,end_date):
 #     p1.to_excel("Output/"+folder_name+"/"+currency+".xls")
 
 
-
-
-import matplotlib.pyplot as plt
-
 def create_graph(y,c,money):
     size = len(y)
     i = 0
@@ -46,10 +45,23 @@ def create_graph(y,c,money):
     plt.xlabel('Days')
     plt.ylabel('Money')
     plt.title('Result of Investing $'+str(money)+' in '+c)
+    try:
 
-    plt.savefig('Graphs/'+sheetname+'/'+str(folder_number)+'/'+c+'.png')
+        plt.savefig('Graphs/'+sheetname+str(folder_number)+'/'+c+'.png')
+
+    except:
+        os.mkdir('Graphs/'+sheetname+str(folder_number))
+        print("Made directory")
+        plt.savefig('Graphs/'+sheetname+str(folder_number)+'/'+c+'.png')
+
+
     y = pd.DataFrame(y)
-    y.to_csv('Data/'+sheetname+'/'+str(folder_number)+'/'+c+'.csv')
+    try:
+        y.to_csv('Data/'+sheetname+str(folder_number)+'/'+c+'.csv')
+    except:
+        os.mkdir('Data/'+sheetname+str(folder_number))
+        print("Made directory")
+        y.to_csv('Data/'+sheetname+str(folder_number)+'/'+c+'.csv')
 #     plt.show()
 
 def calculating_returns(df,c,principle):
@@ -87,7 +99,6 @@ def calculating_returns(df,c,principle):
     print(returns_money)
 #     return_object['graph_values'] = returns_money
     return return_object
-
 
 def authenticate(sheetname):
     scope = ["https://spreadsheets.google.com/feeds"]
@@ -174,7 +185,12 @@ for i in columns:
         returns = calculating_returns(df,c,p)
         returns_list.append(returns)
     summary = pd.DataFrame(returns_list,columns=['Coin_Name','Amount_Invested','Final_Amount'])
-    summary.to_csv(('Results/'+sheetname+'/'+str(folder_number)+'.csv'))
+    try:
+        summary.to_csv(('Results/'+sheetname+str(folder_number)+'.csv'))
+    except:
+        os.mkdir('Results/'+sheetname+str(folder_number))
+        print("Made directory")
+        summary.to_csv('Results/'+sheetname+str(folder_number)+'/'+c+'.csv')
     basket_summary = {}
     sum_ = 0
 #     basket_summary['ID'] = folder_number +1
@@ -191,4 +207,5 @@ for i in columns:
 #     basket_summary.to_csv(('Results/BasketSummary/'+str(folder_number)+'.csv'))
     folder_number +=1
 baskets = pd.DataFrame(baskets)
-baskets.to_csv('Results/BasketSummary/'+sheetname+'/Total.csv')
+os.mkdir('Results/BasketSummary/')
+baskets.to_csv('Results/BasketSummary/'+sheetname+'Total.csv')
