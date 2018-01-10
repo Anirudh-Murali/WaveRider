@@ -54,7 +54,7 @@ def create_graph(y,c,money):
         print("Made directory")
         plt.savefig('Graphs/'+sheetname+str(folder_number)+'/'+c+'.png')
 
-
+    plt.close()
     y = pd.DataFrame(y)
     try:
         y.to_csv('Data/'+sheetname+str(folder_number)+'/'+c+'.csv')
@@ -207,5 +207,5 @@ for i in columns:
 #     basket_summary.to_csv(('Results/BasketSummary/'+str(folder_number)+'.csv'))
     folder_number +=1
 baskets = pd.DataFrame(baskets)
-os.mkdir('Results/BasketSummary/')
+# os.mkdir('Results/BasketSummary/')
 baskets.to_csv('Results/BasketSummary/'+sheetname+'Total.csv')
